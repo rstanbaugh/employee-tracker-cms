@@ -2,7 +2,7 @@
 -- so is this
 /* so is this*/
 
-INSERT INTO departments (id, dept_name)
+INSERT INTO department (id, dept_name)
 VALUES
   (1, 'Executive'),
   (2, 'Accounting'),
@@ -10,14 +10,14 @@ VALUES
   (4, 'Sales'),
   (5, 'IT');
 
-INSERT INTO roles (id, job_title, salary)
+INSERT INTO role (id, job_title, salary)
 VALUES
   (1, 'Manager', 100000),
   (2, 'Engineer', 150000),
   (3, 'Accountant', 50000),
   (4, 'Associate', 50000);
 
-INSERT INTO employees (id, first_name, last_name, dept_id, role_id, manager_id)
+INSERT INTO employee (id, first_name, last_name, dept_id, role_id, manager_id)
 VALUES
   (1, 'James', 'Fraser', 1, 1, NULL),
   (2, 'Jack', 'London', 2, 1, 1),
