@@ -20,6 +20,29 @@ router.get('/department', (req, res) => {
   });
 });
 
+// Get department total salary budget
+router.get('/department/BUDGET', (req, res) => {
+  const sql = `SELECT dept_name, 
+                COUNT(employee.id) AS num_employees, 
+                SUM(salary) as tot_salary
+                FROM employee
+                JOIN role ON employee.role_id = role.id
+                JOIN department ON role.dept_id = department.id
+                GROUP BY dept_name`;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({
+      message: 'success',
+      data: rows
+    });
+  });
+});
+
+
 
 // Create a new DEPARTMENT
 router.post('/department', ({ body }, res) => {
