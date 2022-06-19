@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/rstanbaugh/employee-tracker-cms#readme",
   "dependencies": {
+    "console.table": "^0.10.0",
     "inquirer": "^9.0.0"
   }
 }
