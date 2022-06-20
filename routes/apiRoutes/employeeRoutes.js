@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../../db/connection');
 const inputCheck = require('../../utils/inputCheck');
 
+
 // Get all employee and their departments / roles 
 router.get('/employee', (req, res) => {
   const sql = `Select employee.id AS 'emp_id', first_name, last_name, 
@@ -17,7 +18,7 @@ router.get('/employee', (req, res) => {
       return;
     }
     res.json({
-      message: 'success',
+      // message: 'success',
       data: rows
     });
   });

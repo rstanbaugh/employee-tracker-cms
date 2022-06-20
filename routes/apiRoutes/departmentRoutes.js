@@ -22,9 +22,9 @@ router.get('/department', (req, res) => {
 
 // Get department total salary budget
 router.get('/department/BUDGET', (req, res) => {
-  const sql = `SELECT dept_name, 
-                COUNT(employee.id) AS num_employees, 
-                SUM(salary) as tot_salary
+  const sql = `SELECT dept_name as Department, 
+                COUNT(employee.id) AS Employees, 
+                FORMAT(SUM(salary), 'c0') as 'Dept Salary'
                 FROM employee
                 JOIN role ON employee.role_id = role.id
                 JOIN department ON role.dept_id = department.id
