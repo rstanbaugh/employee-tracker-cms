@@ -94,6 +94,7 @@ const promptUser = () => {
       case 'Exit':
           connection.end();
       }
+      promptUser();
   });
 };
 
@@ -166,7 +167,6 @@ const viewEmployeesByDepartment = () => {
     console.log(chalk.blue.bold(`====================================================================================`));
     console.table(res);
     console.log(chalk.blue.bold(`====================================================================================`));
-    promptUser();
   });
 };
 
@@ -255,10 +255,6 @@ const removeDepartment = () => {
 };
 
 
-const removeEmployee = () => {
-  console.log('function: addEmployee');
-};
-
 
 // Delete a Role
 const removeRole = () => {
@@ -300,15 +296,122 @@ const removeRole = () => {
 };
 
 
+// Delete an Employee
+const removeEmployee = () => {
+  let sql =     `SELECT employee.id, employee.first_name, employee.last_name FROM employee`;
+
+  db.query(sql, (err, response) => {
+    if (err) throw error;
+    let employeeNamesArray = [];
+    response.forEach((employee) => {employeeNamesArray.push(`${employee.first_name} ${employee.last_name}`);});
+
+    inquirer
+      .prompt([
+        {
+          name: 'chosenEmployee',
+          type: 'list',
+          message: 'Which employee would you like to remove?',
+          choices: employeeNamesArray
+        }
+      ])
+      .then((answer) => {
+        let employeeId;
+
+        response.forEach((employee) => {
+          if (
+            answer.chosenEmployee ===
+            `${employee.first_name} ${employee.last_name}`
+          ) {
+            employeeId = employee.id;
+          }
+        });
+
+        let sql = `DELETE FROM employee WHERE employee.id = ?`;
+        db.query(sql, [employeeId], (error) => {
+          if (err) throw err;
+          console.log(chalk.redBright.bold(`====================================================================================`));
+          console.log(chalk.redBright(`Employee Successfully Removed`));
+          console.log(chalk.redBright.bold(`====================================================================================`));
+          viewAllEmployees();
+        });
+      });
+  });
+};
+
+
 
 // ++++++++++++++++++++++++++++++++     UPDATE  FUNCTIONS  ++++++++++++++++++++++++++++++++
 
+// Update an Employee's Role
 const updateEmployeeRole = () => {
-  console.log('function: updateEmployeeRole');
+  let sql =       `SELECT employee.id, employee.first_name, employee.last_name, role.id AS "role_id"
+                  FROM employee, role, department WHERE department.id = role.dept_id AND role.id = employee.role_id`;
+  db.query(sql, (err, response) => {
+    if (err) throw err;
+    let employeeNamesArray = [];
+    response.forEach((employee) => {employeeNamesArray.push(`${employee.first_name} ${employee.last_name}`);});
+
+    let sql =     `SELECT role.id, role.title FROM role`;
+    db.query(sql, (err, response) => {
+      if (err) throw error;
+      let rolesArray = [];
+      response.forEach((role) => {rolesArray.push(role.title);});
+
+      inquirer
+        .prompt([
+          {
+            name: 'chosenEmployee',
+            type: 'list',
+            message: 'Which employee has a new role?',
+            choices: employeeNamesArray
+          },
+          {
+            name: 'chosenRole',
+            type: 'list',
+            message: 'What is their new role?',
+            choices: rolesArray
+          }
+        ])
+        .then((answer) => {
+          let newTitleId, employeeId;
+
+          response.forEach((role) => {
+            if (answer.chosenRole === role.title) {
+              newTitleId = role.id;
+            }
+          });
+
+          response.forEach((employee) => {
+            if (
+              answer.chosenEmployee ===
+              `${employee.first_name} ${employee.last_name}`
+            ) {
+              employeeId = employee.id;
+            }
+          });
+
+          let sqls =    `UPDATE employee SET employee.role_id = ? WHERE employee.id = ?`;
+          db.query(
+            sqls,
+            [newTitleId, employeeId],
+            (error) => {
+              if (err) throw err;
+              console.log(chalk.blue.bold(`====================================================================================`));
+              console.log(chalk.cyanBright(`Employee Role Updated`));
+              console.log(chalk.blue.bold(`====================================================================================`));
+              promptUser();
+            }
+          );
+        });
+    });
+  });
 };
 
+
 const updateEmployeeManager = () => {
-  console.log('function: updateEmployeeManager');
+  console.log(chalk.blue.bold(`====================================================================================`));
+  console.log(chalk.cyanBright(`IN PROCESS - Employee Manager Updated`));
+  console.log(chalk.blue.bold(`====================================================================================`));
 };
 
 
@@ -317,15 +420,21 @@ const updateEmployeeManager = () => {
 // ++++++++++++++++++++++++++++++++     ADD  FUNCTIONS  ++++++++++++++++++++++++++++++++
 
 const addEmployee = () => {
-  console.log('function: viewAllEmployees');
+  console.log(chalk.blue.bold(`====================================================================================`));
+  console.log(chalk.cyanBright(`IN PROCESS - Employee Added`));
+  console.log(chalk.blue.bold(`====================================================================================`));
 };
 
 const addRole = () => {
-  console.log('function: addRole');
+  console.log(chalk.blue.bold(`====================================================================================`));
+  console.log(chalk.cyanBright(`IN PROCESS - Role Added`));
+  console.log(chalk.blue.bold(`====================================================================================`));
 };
 
 const addDepartment = () => {
-  console.log('function: addDepartment');
+  console.log(chalk.blue.bold(`====================================================================================`));
+  console.log(chalk.cyanBright(`IN PROCESS - Department Added`));
+  console.log(chalk.blue.bold(`====================================================================================`));
 };
 
 
