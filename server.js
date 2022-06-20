@@ -5,7 +5,7 @@ const apiRoutes = require('./routes/apiRoutes');
 const { response } = require('express');
 const chalk = require('chalk');
 const cTable = require('console.table');
-
+const validate = require('./utils/validate');
 
 
 const PORT = process.env.PORT || 3001;
@@ -431,10 +431,29 @@ const addRole = () => {
   console.log(chalk.blue.bold(`====================================================================================`));
 };
 
+// Add a New Department
 const addDepartment = () => {
-  console.log(chalk.blue.bold(`====================================================================================`));
-  console.log(chalk.cyanBright(`IN PROCESS - Department Added`));
-  console.log(chalk.blue.bold(`====================================================================================`));
+  console.log('adding department');
+  inquirer
+    .prompt([
+      {
+        name: 'newDepartment',
+        type: 'input',
+        message: 'What is the name of your new Department?',
+        validate: validate.validateString
+      }
+    ])
+    .then((answer) => {
+      let sql =     `INSERT INTO department (dept_name) VALUES (?)`;
+      db.query(sql, answer.newDepartment, (err, response) => {
+        if (err) throw err;
+        console.log(``);
+        console.log(``);
+        console.log(chalk.cyanBright(answer.newDepartment + ` Department successfully created!`));
+        console.log(``);
+        viewAllDepartments();
+      });
+    });
 };
 
 
