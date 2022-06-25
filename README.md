@@ -26,7 +26,7 @@ A node.js application that uses user input from inquirer to populate a MySQL emp
   ## Video Walkthrough
   [Original Video Walkthrough](https://drive.google.com/file/d/1QCzWoaJYWWbQvperTpMZz422nWfcUTaY/view)
 
-  [Re-submission Video Walkthrough]()
+  [Re-submission Video Walkthrough](https://drive.google.com/file/d/1QwUDNxEhvJo3OX8o4u61dw1feo8Khq29/view)
   
   ## Installation
   `npm install from the project directory` <br/><br/>
