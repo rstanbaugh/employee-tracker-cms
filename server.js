@@ -344,8 +344,9 @@ const removeEmployee = () => {
 
 // Update an Employee's Role
 const updateEmployeeRole = () => {
-  let sql =       `SELECT employee.id, employee.first_name, employee.last_name, role.id AS "role_id"
-                  FROM employee, role, department WHERE department.id = role.dept_id AND role.id = employee.role_id`;
+  let sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title
+              FROM employee
+              JOIN role ON role.id = employee.role_id`;
   db.query(sql, (err, response) => {
     if (err) throw err;
     let employeeNamesArray = [];
@@ -393,9 +394,9 @@ const updateEmployeeRole = () => {
             [newTitleId, employeeId],
             (err) => {
               if (err) throw err;
-              console.log(chalk.greenBright.bold(`====================================================================================`));
-              console.log(chalk.greenBright(`Employee Role Updated`));
-              console.log(chalk.greenBright.bold(`====================================================================================`));
+              console.log(chalk.blue.bold(`====================================================================================`));
+              console.log(chalk.cyanBright(`Employee Role Updated`));
+              console.log(chalk.blue.bold(`====================================================================================`));
               promptUser();
             }
           );
@@ -451,7 +452,7 @@ const updateEmployeeManager = () => {
         } else {
           let sql = `UPDATE employee SET employee.manager_id = ? WHERE employee.id = ?`;
 
-          connection.query(
+          db.query(
             sql,
             [managerId, employeeId],
             (err) => {
