@@ -94,7 +94,6 @@ const promptUser = () => {
       case 'Exit':
           connection.end();
       }
-      promptUser();
   });
 };
 
@@ -408,10 +407,67 @@ const updateEmployeeRole = () => {
 };
 
 
+// Update an Employee's Manager
 const updateEmployeeManager = () => {
-  console.log(chalk.blue.bold(`====================================================================================`));
-  console.log(chalk.cyanBright(`IN PROCESS - Employee Manager Updated`));
-  console.log(chalk.blue.bold(`====================================================================================`));
+  let sql = `SELECT employee.id, employee.first_name, employee.last_name, employee.manager_id
+            FROM employee`;
+   db.query(sql, (err, response) => {
+    let employeeNamesArray = [];
+    response.forEach((employee) => {employeeNamesArray.push(`${employee.first_name} ${employee.last_name}`);});
+
+    inquirer
+      .prompt([
+        {
+          name: 'chosenEmployee',
+          type: 'list',
+          message: 'Which employee has a new manager?',
+          choices: employeeNamesArray
+        },
+        {
+          name: 'newManager',
+          type: 'list',
+          message: 'Who is their manager?',
+          choices: employeeNamesArray
+        }
+      ])
+      .then((answer) => {
+        let employeeId, managerId;
+        response.forEach((employee) => {
+          if (
+            answer.chosenEmployee === `${employee.first_name} ${employee.last_name}`
+          ) {
+            employeeId = employee.id;
+          }
+
+          if (
+            answer.newManager === `${employee.first_name} ${employee.last_name}`
+          ) {
+            managerId = employee.id;
+          }
+        });
+
+        if (validate.isSame(answer.chosenEmployee, answer.newManager)) {
+          console.log(chalk.redBright.bold(`====================================================================================`));
+          console.log(chalk.redBright(`Invalid Manager Selection`));
+          console.log(chalk.redBright.bold(`====================================================================================`));
+          promptUser();
+        } else {
+          let sql = `UPDATE employee SET employee.manager_id = ? WHERE employee.id = ?`;
+
+          connection.query(
+            sql,
+            [managerId, employeeId],
+            (err) => {
+              if (err) throw err;
+              console.log(chalk.blue.bold(`====================================================================================`));
+              console.log(chalk.cyanBright(`Employee Manager Updated`));
+              console.log(chalk.blue.bold(`====================================================================================`));
+              promptUser();
+            }
+          );
+        }
+      });
+  });
 };
 
 
@@ -419,17 +475,147 @@ const updateEmployeeManager = () => {
 
 // ++++++++++++++++++++++++++++++++     ADD  FUNCTIONS  ++++++++++++++++++++++++++++++++
 
+// Add a New Employee
 const addEmployee = () => {
-  console.log(chalk.blue.bold(`====================================================================================`));
-  console.log(chalk.cyanBright(`IN PROCESS - Employee Added`));
-  console.log(chalk.blue.bold(`====================================================================================`));
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: 'fistName',
+      message: "What is the employee's first name?",
+      validate: addFirstName => {
+        if (addFirstName) {
+            return true;
+        } else {
+            console.log('Please enter a first name');
+            return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'lastName',
+      message: "What is the employee's last name?",
+      validate: addLastName => {
+        if (addLastName) {
+            return true;
+        } else {
+            console.log('Please enter a last name');
+            return false;
+        }
+      }
+    }
+  ])
+    .then(answer => {
+    const crit = [answer.fistName, answer.lastName]
+    const roleSql = `SELECT role.id, role.title FROM role`;
+    db.query(roleSql, (err, data) => {
+      if (err) throw error; 
+      const roles = data.map(({ id, title }) => ({ name: title, value: id }));
+      inquirer.prompt([
+            {
+              type: 'list',
+              name: 'role',
+              message: "What is the employee's role?",
+              choices: roles
+            }
+          ])
+            .then(roleChoice => {
+              const role = roleChoice.role;
+              crit.push(role);
+              const managerSql =  `SELECT * FROM employee`;
+              db.query(managerSql, (error, data) => {
+                if (err) throw err;
+                const managers = data.map(({ id, first_name, last_name }) => ({ name: first_name + " "+ last_name, value: id }));
+                inquirer.prompt([
+                  {
+                    type: 'list',
+                    name: 'manager',
+                    message: "Who is the employee's manager?",
+                    choices: managers
+                  }
+                ])
+                  .then(managerChoice => {
+                    const manager = managerChoice.manager;
+                    crit.push(manager);
+                    const sql =   `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                                  VALUES (?, ?, ?, ?)`;
+                    db.query(sql, crit, (error) => {
+                    if (err) throw err;
+
+                    console.log(chalk.blue.bold(`====================================================================================`));
+                    console.log(chalk.cyanBright(`Employee Added`));
+                    console.log(chalk.blue.bold(`====================================================================================`));                    viewAllEmployees();
+              });
+            });
+          });
+        });
+     });
+  });
 };
 
+// Add a New Role
 const addRole = () => {
-  console.log(chalk.blue.bold(`====================================================================================`));
-  console.log(chalk.cyanBright(`IN PROCESS - Role Added`));
-  console.log(chalk.blue.bold(`====================================================================================`));
-};
+  const sql = 'SELECT * FROM department'
+  db.query(sql, (error, response) => {
+      if (err) throw err;
+      let deptNamesArray = [];
+      response.forEach((department) => {deptNamesArray.push(department.department_name);});
+      deptNamesArray.push('Create Department');
+      inquirer
+        .prompt([
+          {
+            name: 'departmentName',
+            type: 'list',
+            message: 'Which department is this new role in?',
+            choices: deptNamesArray
+          }
+        ])
+        .then((answer) => {
+          if (answer.departmentName === 'Create Department') {
+            this.addDepartment();
+          } else {
+            addRoleResume(answer);
+          }
+        });
+
+      const addRoleResume = (departmentData) => {
+        inquirer
+          .prompt([
+            {
+              name: 'newRole',
+              type: 'input',
+              message: 'What is the name of your new role?',
+              validate: validate.validateString
+            },
+            {
+              name: 'salary',
+              type: 'input',
+              message: 'What is the salary of this new role?',
+              validate: validate.validateSalary
+            }
+          ])
+          .then((answer) => {
+            let createdRole = answer.newRole;
+            let departmentId;
+
+            response.forEach((department) => {
+              if (departmentData.departmentName === department.department_name) {departmentId = dept.id;}
+            });
+
+            let sql =   `INSERT INTO role (title, salary, dept_id) VALUES (?, ?, ?)`;
+            let crit = [createdRole, answer.salary, departmentId];
+
+            db.query(sql, crit, (error) => {
+              if (err) throw err;
+              console.log(chalk.blue.bold(`====================================================================================`));
+              console.log(chalk.cyanBright(`Role successfully created!`));
+              console.log(chalk.blue.bold(`====================================================================================`));
+              viewAllRoles();
+            });
+          });
+      };
+    });
+  };
 
 // Add a New Department
 const addDepartment = () => {
